@@ -88,3 +88,139 @@ WHERE album_id IN (SELECT album_id FROM album
 --
 
 -- (1)
+UPDATE customer
+SET fax = NULL;
+
+-- (2)
+UPDATE customer
+SET company = 'Self'
+WHERE company = NULL;
+
+-- (3)
+UPDATE customer
+SET last_name = 'Thompson'
+WHERE first_name = 'Julia' AND
+last_name = 'Barnett';
+
+-- (4)
+UPDATE customer
+SET support_rep_id = 4
+WHERE email = 'luisrojas@yahoo.cl'
+
+-- (5)
+UPDATE track
+SET composer = 'The darkness around us'
+WHERE composer = NULL
+AND genre_id = (SELECT genre_id FROM genre
+                WHERE name = 'Metal');
+
+--
+-- GROUP BY
+--
+
+-- (1)
+SELECT g.name, count(*) FROM track as t
+JOIN genre AS g ON t.genre_id = g.genre_id
+GROUP BY g.name
+
+-- (2)
+SELECT g.name, count(*) FROM track as t
+JOIN genre AS g ON t.genre_id = g.genre_id
+WHERE g.name IN ('Pop', 'Rock')
+GROUP BY g.name
+
+-- (3)
+SELECT ar.name, count(*) FROM artist as ar
+JOIN album AS al ON ar.artist_id = al.album_id
+GROUP BY ar.name
+
+--
+-- USE DISTINCT
+--
+
+-- (1)
+SELECT DISTINCT composer
+FROM track
+
+-- (2)
+SELECT DISTINCT billing_postal_code
+FROM invoice
+
+-- (3)
+SELECT DISTINCT company
+FROM customer
+
+--
+-- DELETE ROWS
+--
+
+-- (2)
+DELETE FROM practice_delete
+WHERE Type = 'bronze';
+
+-- (3)
+DELETE FROM practice_delete
+WHERE Type = 'silver';
+
+-- (4)
+DELETE FROM practice_delete
+WHERE Value = 150;
+
+--
+-- ECOMMERCE SIMULATION
+--
+
+CREATE TABLE users (
+id SERIAL PRIMARY KEY,
+name VARCHAR (150),
+email VARCHAR (150)
+);
+
+CREATE TABLE product (
+product_id SERIAL PRIMARY KEY,
+name VARCHAR (150),
+price INTEGER);
+
+CREATE TABLE orders (
+order_id SERIAL PRIMARY KEY,
+product_id INTEGER, 
+FOREIGN KEY (product_id) REFERENCES product(product_id));
+
+INSERT INTO users (name, email)
+VALUES ('Laura', 'laura.jinks@gmail.com'),
+('Person A', 'persona@gmail.com'),
+('B Person', 'bperson@gmail.com');
+
+INSERT INTO product (name, price)
+VALUES ('Hat', 200), ('Cat', 4000), ('Bat', 100);
+
+INSERT INTO orders (product_id)
+VALUES (3), (1), (2)
+
+SELECT name FROM product
+WHERE product_id = (SELECT product_id FROM orders
+                    WHERE order_id = 4);
+
+SELECT * FROM orders
+
+SELECT SUM(product.price) FROM orders
+JOIN product ON orders.product_id = product.product_id
+GROUP BY orders.order_id;
+
+ALTER TABLE orders
+ADD user_id INTEGER,
+ADD FOREIGN KEY(user_id) REFERENCES users(user_id);
+
+UPDATE orders
+SET user_id = 7;
+
+SELECT * FROM orders
+WHERE user_id = (SELECT user_id FROM users
+                WHERE name = 'Laura');
+
+SELECT user_id, count(*) FROM orders
+GROUP BY user_id;
+
+SELECT user_id, SUM(product.price) FROM orders
+JOIN product ON orders.product_id = product.product_id
+GROUP BY user_id;
